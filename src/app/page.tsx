@@ -3,6 +3,7 @@ import MatchList from "@/components/matches/MatchList";
 import GroupTable from "@/components/groups/GroupTable";
 import { getQualifiedThirdPlace } from "@/lib/utils/standings";
 import Link from "next/link";
+import BulkCalendarActions from "@/components/ui/BulkCalendarActions";
 
 export const revalidate = 60;
 
@@ -19,11 +20,12 @@ async function getHomeData() {
       (m) => m.status === "IN_PLAY" || m.status === "PAUSED"
     );
 
-    const upcoming = allMatches
+    const allUpcoming = allMatches
       .filter((m) => m.status === "SCHEDULED" || m.status === "TIMED")
       .filter((m) => new Date(m.utcDate) >= now)
-      .sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
-      .slice(0, 6);
+      .sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+
+    const upcoming = allUpcoming.slice(0, 6);
 
     const recent = allMatches
       .filter((m) => m.status === "FINISHED")
@@ -33,11 +35,12 @@ async function getHomeData() {
     const groups = standingsData.standings.slice(0, 3);
     const qualifiedThirds = getQualifiedThirdPlace(standingsData.standings);
 
-    return { liveMatches, upcoming, recent, groups, qualifiedThirds };
+    return { liveMatches, upcoming, allUpcoming, recent, groups, qualifiedThirds };
   } catch {
     return {
       liveMatches: [],
       upcoming: [],
+      allUpcoming: [],
       recent: [],
       groups: [],
       qualifiedThirds: new Set<number>(),
@@ -46,7 +49,7 @@ async function getHomeData() {
 }
 
 export default async function Home() {
-  const { liveMatches, upcoming, recent, groups, qualifiedThirds } =
+  const { liveMatches, upcoming, allUpcoming, recent, groups, qualifiedThirds } =
     await getHomeData();
 
   const hasData =
@@ -86,6 +89,7 @@ export default async function Home() {
             Bracket
           </Link>
         </div>
+        <BulkCalendarActions matches={allUpcoming} />
       </section>
 
       {/* Live matches */}
