@@ -52,7 +52,7 @@ export default function GroupTable({ group, qualifiedThirds }: GroupTableProps) 
                   className="flex items-center gap-2 hover:text-blue-400 transition-colors"
                 >
                   <Flag
-                    src={entry.team.area?.flag}
+                    countryCode={entry.team.area?.code ?? entry.team.tla}
                     name={entry.team.name}
                     size="sm"
                   />

@@ -41,7 +41,7 @@ export default async function TeamPage({ params }: Props) {
     <div className="space-y-8 max-w-3xl">
       {/* Header */}
       <div className="flex items-center gap-5">
-        <Flag src={team.area?.flag} name={team.name} size="lg" />
+        <Flag countryCode={team.area?.code ?? team.tla} name={team.name} size="lg" />
         <div>
           <h1 className="text-3xl font-bold text-white">{team.name}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{team.area?.name}</p>

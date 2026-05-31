@@ -40,7 +40,7 @@ export default function MatchCard({ match }: MatchCardProps) {
               {match.homeTeam.shortName || match.homeTeam.tla}
             </span>
             <Flag
-              src={match.homeTeam.area?.flag}
+              countryCode={match.homeTeam.area?.code ?? match.homeTeam.tla}
               name={match.homeTeam.name}
               size="md"
             />
@@ -55,7 +55,7 @@ export default function MatchCard({ match }: MatchCardProps) {
           {/* Away team */}
           <div className="flex items-center gap-2 flex-1">
             <Flag
-              src={match.awayTeam.area?.flag}
+              countryCode={match.awayTeam.area?.code ?? match.awayTeam.tla}
               name={match.awayTeam.name}
               size="md"
             />

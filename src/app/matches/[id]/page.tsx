@@ -59,7 +59,7 @@ export default async function MatchPage({ params }: Props) {
             href={`/teams/${homeTeam.id}`}
             className="flex flex-col items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
           >
-            <Flag src={homeTeam.area?.flag} name={homeTeam.name} size="lg" />
+            <Flag countryCode={homeTeam.area?.code ?? homeTeam.tla} name={homeTeam.name} size="lg" />
             <span className="text-white font-semibold text-center">
               {homeTeam.shortName || homeTeam.name}
             </span>
@@ -86,7 +86,7 @@ export default async function MatchPage({ params }: Props) {
             href={`/teams/${awayTeam.id}`}
             className="flex flex-col items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
           >
-            <Flag src={awayTeam.area?.flag} name={awayTeam.name} size="lg" />
+            <Flag countryCode={awayTeam.area?.code ?? awayTeam.tla} name={awayTeam.name} size="lg" />
             <span className="text-white font-semibold text-center">
               {awayTeam.shortName || awayTeam.name}
             </span>
