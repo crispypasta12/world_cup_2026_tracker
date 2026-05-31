@@ -57,6 +57,25 @@ export interface Match {
   awayTeam: Team;
   score: Score;
   venue?: string;
+  competition?: { id: number; name: string; code: string };
+}
+
+export interface H2HTeamRecord {
+  id: number;
+  name: string;
+  wins: number;
+  draws: number;
+  losses: number;
+}
+
+export interface HeadToHeadResponse {
+  aggregates: {
+    numberOfMatches: number;
+    totalGoals: number;
+    homeTeam: H2HTeamRecord;
+    awayTeam: H2HTeamRecord;
+  };
+  matches: Match[];
 }
 
 export interface StandingEntry {

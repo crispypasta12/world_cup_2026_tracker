@@ -5,6 +5,8 @@ import { formatMatchDateTime } from "@/lib/utils/date";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import MatchCalendarActions from "@/components/ui/MatchCalendarActions";
+import HeadToHead from "@/components/matches/HeadToHead";
+import type { H2HMatch } from "@/app/api/h2h/route";
 
 export const revalidate = 30;
 
@@ -23,6 +25,22 @@ export default async function MatchPage({ params }: Props) {
     match = await getMatch(matchId);
   } catch {
     notFound();
+  }
+
+  // Fetch H2H from our internal route (backed by martj42/international_results dataset)
+  let h2hMatches: H2HMatch[] = [];
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const h2hRes = await fetch(
+      `${baseUrl}/api/h2h?home=${encodeURIComponent(match.homeTeam.name)}&away=${encodeURIComponent(match.awayTeam.name)}&limit=10`,
+      { next: { revalidate: 86400 } }
+    );
+    if (h2hRes.ok) {
+      const data = await h2hRes.json();
+      h2hMatches = data.matches ?? [];
+    }
+  } catch {
+    // H2H is optional — silently skip on error
   }
 
   const { homeTeam, awayTeam, score, status, utcDate } = match;
@@ -104,6 +122,15 @@ export default async function MatchPage({ params }: Props) {
 
       {/* Calendar actions */}
       {!isFinished && <MatchCalendarActions match={match} />}
+
+      {/* Head to Head */}
+      {h2hMatches.length > 0 && (
+        <HeadToHead
+          matches={h2hMatches}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+        />
+      )}
     </div>
   );
 }
