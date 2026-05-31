@@ -4,6 +4,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { formatMatchDateTime } from "@/lib/utils/date";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import MatchCalendarActions from "@/components/ui/MatchCalendarActions";
 
 export const revalidate = 30;
 
@@ -100,6 +101,9 @@ export default async function MatchPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      {/* Calendar actions */}
+      {!isFinished && <MatchCalendarActions match={match} />}
     </div>
   );
 }
