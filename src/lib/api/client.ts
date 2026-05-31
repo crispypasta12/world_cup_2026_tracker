@@ -1,6 +1,8 @@
 import type {
   Match,
   MatchesResponse,
+  Scorer,
+  ScorersResponse,
   StandingsResponse,
   Team,
   TeamDetail,
@@ -79,4 +81,12 @@ export async function getTeamMatches(id: number): Promise<Match[]> {
 
 export async function getMatch(id: number): Promise<Match> {
   return apiFetch<Match>(`/matches/${id}`, 30);
+}
+
+export async function getScorers(limit = 20): Promise<Scorer[]> {
+  const data = await apiFetch<ScorersResponse>(
+    `/competitions/${COMPETITION}/scorers?limit=${limit}`,
+    300
+  );
+  return data.scorers;
 }

@@ -1,34 +1,79 @@
-export function formatMatchDate(utcDate: string): string {
-  const date = new Date(utcDate);
-  return date.toLocaleDateString("en-US", {
+export function formatMatchDate(utcDate: string, timezone = "UTC"): string {
+  return new Date(utcDate).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
-    timeZone: "UTC",
+    timeZone: timezone,
   });
 }
 
-export function formatMatchTime(utcDate: string): string {
+export function formatMatchTime(utcDate: string, timezone = "UTC"): string {
   const date = new Date(utcDate);
-  return date.toLocaleTimeString("en-US", {
+  const timeStr = date.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "UTC",
-  }) + " UTC";
+    timeZone: timezone,
+  });
+  if (timezone === "UTC") return timeStr + " UTC";
+  try {
+    const abbr = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "short",
+    })
+      .formatToParts(date)
+      .find((p) => p.type === "timeZoneName")?.value ?? "";
+    return `${timeStr} ${abbr}`;
+  } catch {
+    return timeStr;
+  }
 }
 
-export function formatMatchDateTime(utcDate: string): string {
+export function formatMatchDateTime(utcDate: string, timezone = "UTC"): string {
   const date = new Date(utcDate);
-  return date.toLocaleString("en-US", {
+  const base = date.toLocaleString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "UTC",
-  }) + " UTC";
+    timeZone: timezone,
+  });
+  if (timezone === "UTC") return base + " UTC";
+  try {
+    const abbr = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "short",
+    })
+      .formatToParts(date)
+      .find((p) => p.type === "timeZoneName")?.value ?? "";
+    return `${base} ${abbr}`;
+  } catch {
+    return base;
+  }
+}
+
+export function getLocalDateKey(utcDate: string, timezone: string): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(utcDate));
+  } catch {
+    return utcDate.slice(0, 10);
+  }
+}
+
+export function formatDateKey(dateKey: string): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function groupMatchesByDate(

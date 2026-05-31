@@ -50,8 +50,8 @@ export default function ScheduleClient({ matches }: ScheduleClientProps) {
               onClick={() => setStage(s.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 stage === s.value
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+                  ? "bg-blue-600/80 backdrop-blur-sm text-white border border-blue-500/50"
+                  : "bg-slate-800/60 backdrop-blur-sm text-slate-400 hover:text-white hover:bg-slate-700/60 border border-slate-700/50"
               }`}
             >
               {s.label}
@@ -65,8 +65,8 @@ export default function ScheduleClient({ matches }: ScheduleClientProps) {
               onClick={() => setStatusFilter(s.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === s.value
-                  ? "bg-slate-600 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+                  ? "bg-slate-600/80 backdrop-blur-sm text-white border border-slate-500/50"
+                  : "bg-slate-800/60 backdrop-blur-sm text-slate-400 hover:text-white hover:bg-slate-700/60 border border-slate-700/50"
               }`}
             >
               {s.label}

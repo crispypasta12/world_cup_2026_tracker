@@ -79,7 +79,7 @@ export default async function TeamPage({ params }: Props) {
       {team.squad && team.squad.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">Squad</h2>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-slate-500 text-xs uppercase tracking-wider border-b border-slate-700">

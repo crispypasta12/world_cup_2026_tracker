@@ -94,6 +94,26 @@ export interface TeamDetail extends Team {
   squad: SquadMember[];
 }
 
+export interface ScorerPlayer {
+  id: number;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  nationality?: string;
+  position?: string;
+  shirtNumber?: number;
+}
+
+export interface Scorer {
+  player: ScorerPlayer;
+  team: Team;
+  playedMatches: number;
+  goals: number;
+  assists: number | null;
+  penalties: number | null;
+}
+
 // API response shapes
 export interface MatchesResponse {
   matches: Match[];
@@ -116,4 +136,11 @@ export interface TeamsResponse {
   competition: Competition;
   season: Season;
   teams: Team[];
+}
+
+export interface ScorersResponse {
+  count: number;
+  competition: Competition;
+  season: Season;
+  scorers: Scorer[];
 }

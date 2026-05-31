@@ -1,6 +1,9 @@
+"use client";
+
 import type { Match } from "@/lib/api/types";
 import MatchCard from "./MatchCard";
-import { formatMatchDate } from "@/lib/utils/date";
+import { getLocalDateKey, formatDateKey } from "@/lib/utils/date";
+import { useTimezone } from "@/lib/context/TimezoneContext";
 
 interface MatchListProps {
   matches: Match[];
@@ -8,6 +11,8 @@ interface MatchListProps {
 }
 
 export default function MatchList({ matches, groupByDate = true }: MatchListProps) {
+  const { timezone } = useTimezone();
+
   if (matches.length === 0) {
     return (
       <div className="text-center text-slate-500 py-12">No matches found.</div>
@@ -24,20 +29,22 @@ export default function MatchList({ matches, groupByDate = true }: MatchListProp
     );
   }
 
-  // Group by calendar date
   const byDate = new Map<string, Match[]>();
   for (const m of matches) {
-    const key = m.utcDate.slice(0, 10);
+    const key = getLocalDateKey(m.utcDate, timezone);
     if (!byDate.has(key)) byDate.set(key, []);
     byDate.get(key)!.push(m);
   }
 
   return (
     <div className="space-y-8">
-      {[...byDate.entries()].map(([date, dayMatches]) => (
-        <div key={date}>
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            {formatMatchDate(date + "T12:00:00Z")}
+      {[...byDate.entries()].map(([dateKey, dayMatches]) => (
+        <div key={dateKey}>
+          <h3
+            className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3"
+            suppressHydrationWarning
+          >
+            {formatDateKey(dateKey)}
           </h3>
           <div className="space-y-3">
             {dayMatches.map((m) => (

@@ -37,7 +37,7 @@ export default async function MatchPage({ params }: Props) {
       </Link>
 
       {/* Match header */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
+      <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8">
         <div className="text-center mb-6">
           <StatusBadge status={status} />
           <div className="text-slate-400 text-sm mt-2">
