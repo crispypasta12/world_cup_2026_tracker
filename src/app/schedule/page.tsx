@@ -1,4 +1,6 @@
 import { getMatches } from "@/lib/api/client";
+import { fetchH2HBatch } from "@/lib/utils/h2h";
+import type { H2HRecord } from "@/lib/utils/h2h";
 import ScheduleClient from "./ScheduleClient";
 
 export const revalidate = 60;
@@ -23,6 +25,8 @@ export default async function SchedulePage({ searchParams }: Props) {
     );
   }
 
+  const h2hMap = await fetchH2HBatch(matches).catch(() => ({} as Record<number, H2HRecord>));
+
   return (
     <div className="space-y-6">
       <div>
@@ -31,7 +35,7 @@ export default async function SchedulePage({ searchParams }: Props) {
           All {matches.length} matches — filter by stage or status.
         </p>
       </div>
-      <ScheduleClient matches={matches} initialVenue={(await searchParams)?.venue ?? "ALL"} />
+      <ScheduleClient matches={matches} initialVenue={(await searchParams)?.venue ?? "ALL"} h2hMap={h2hMap} />
     </div>
   );
 }

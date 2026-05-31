@@ -8,7 +8,8 @@ import MatchCalendarActions from "@/components/ui/MatchCalendarActions";
 import { teamCode, teamId, teamName } from "@/lib/utils/match";
 import Icon from "@/components/ui/Icon";
 import HeadToHead from "@/components/matches/HeadToHead";
-import type { H2HMatch } from "@/app/api/h2h/route";
+import type { H2HMatch } from "@/lib/utils/h2h";
+import { fetchH2H } from "@/lib/utils/h2h";
 
 export const revalidate = 30;
 
@@ -29,20 +30,11 @@ export default async function MatchPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch H2H from our internal route (backed by martj42/international_results dataset)
   let h2hMatches: H2HMatch[] = [];
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    const h2hRes = await fetch(
-      `${baseUrl}/api/h2h?home=${encodeURIComponent(match.homeTeam.name)}&away=${encodeURIComponent(match.awayTeam.name)}&limit=10`,
-      { next: { revalidate: 86400 } }
-    );
-    if (h2hRes.ok) {
-      const data = await h2hRes.json();
-      h2hMatches = data.matches ?? [];
-    }
+    h2hMatches = await fetchH2H(match.homeTeam.name, match.awayTeam.name, 10);
   } catch {
-    // H2H is optional — silently skip on error
+    // H2H is optional
   }
 
   const { homeTeam, awayTeam, score, status, utcDate } = match;

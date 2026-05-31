@@ -1,6 +1,7 @@
 "use client";
 
 import type { Match } from "@/lib/api/types";
+import type { H2HRecord } from "@/lib/utils/h2h";
 import MatchCard from "./MatchCard";
 import { getLocalDateKey, formatDateKey } from "@/lib/utils/date";
 import { useTimezone } from "@/lib/context/TimezoneContext";
@@ -8,9 +9,10 @@ import { useTimezone } from "@/lib/context/TimezoneContext";
 interface MatchListProps {
   matches: Match[];
   groupByDate?: boolean;
+  h2hMap?: Record<number, H2HRecord>;
 }
 
-export default function MatchList({ matches, groupByDate = true }: MatchListProps) {
+export default function MatchList({ matches, groupByDate = true, h2hMap }: MatchListProps) {
   const { timezone } = useTimezone();
 
   if (matches.length === 0) {
@@ -23,7 +25,7 @@ export default function MatchList({ matches, groupByDate = true }: MatchListProp
     return (
       <div className="space-y-3">
         {matches.map((m) => (
-          <MatchCard key={m.id} match={m} />
+          <MatchCard key={m.id} match={m} h2hRecord={h2hMap?.[m.id]} />
         ))}
       </div>
     );
@@ -48,7 +50,7 @@ export default function MatchList({ matches, groupByDate = true }: MatchListProp
           </h3>
           <div className="space-y-3">
             {dayMatches.map((m) => (
-              <MatchCard key={m.id} match={m} />
+              <MatchCard key={m.id} match={m} h2hRecord={h2hMap?.[m.id]} />
             ))}
           </div>
         </div>

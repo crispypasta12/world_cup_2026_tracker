@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Match } from "@/lib/api/types";
+import type { H2HRecord } from "@/lib/utils/h2h";
 import MatchList from "@/components/matches/MatchList";
 import { downloadICS } from "@/lib/utils/calendar";
 import Icon from "@/components/ui/Icon";
@@ -26,9 +27,10 @@ const STATUSES: { value: string; label: string }[] = [
 interface ScheduleClientProps {
   matches: Match[];
   initialVenue?: string;
+  h2hMap?: Record<number, H2HRecord>;
 }
 
-export default function ScheduleClient({ matches, initialVenue = "ALL" }: ScheduleClientProps) {
+export default function ScheduleClient({ matches, initialVenue = "ALL", h2hMap }: ScheduleClientProps) {
   const [stage, setStage] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [venue, setVenue] = useState(initialVenue);
@@ -222,7 +224,7 @@ export default function ScheduleClient({ matches, initialVenue = "ALL" }: Schedu
         </div>
       </div>
 
-      <MatchList matches={filtered} groupByDate />
+      <MatchList matches={filtered} groupByDate h2hMap={h2hMap} />
     </div>
   );
 }

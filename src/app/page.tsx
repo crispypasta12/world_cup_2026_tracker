@@ -1,4 +1,6 @@
 import { getMatches, getStandings } from "@/lib/api/client";
+import { fetchH2HBatch } from "@/lib/utils/h2h";
+import type { H2HRecord } from "@/lib/utils/h2h";
 import MatchList from "@/components/matches/MatchList";
 import GroupTable from "@/components/groups/GroupTable";
 import { getQualifiedThirdPlace } from "@/lib/utils/standings";
@@ -23,6 +25,7 @@ async function getHomeData() {
       getMatches(),
       getStandings(),
     ]);
+
 
     const now = new Date();
     const todayKey = now.toISOString().slice(0, 10);
@@ -55,6 +58,7 @@ async function getHomeData() {
 
     const groups = standingsData.standings.slice(0, 3);
     const qualifiedThirds = getQualifiedThirdPlace(standingsData.standings);
+    const h2hMap = await fetchH2HBatch(allMatches).catch(() => ({} as Record<number, H2HRecord>));
 
     return {
       liveMatches,
@@ -66,6 +70,7 @@ async function getHomeData() {
       nextMatch,
       todayMatches,
       openingDayMatches,
+      h2hMap,
     };
   } catch {
     return {
@@ -78,6 +83,7 @@ async function getHomeData() {
       nextMatch: null,
       todayMatches: [],
       openingDayMatches: [],
+      h2hMap: {} as Record<number, H2HRecord>,
     };
   }
 }
@@ -102,6 +108,7 @@ export default async function Home() {
     nextMatch,
     todayMatches,
     openingDayMatches,
+    h2hMap,
   } = await getHomeData();
 
   const hasData =
@@ -180,7 +187,7 @@ export default async function Home() {
             </div>
             {nextMatch ? (
               <div className="space-y-4">
-                <MatchList matches={[nextMatch]} groupByDate={false} />
+                <MatchList matches={[nextMatch]} groupByDate={false} h2hMap={h2hMap} />
                 <div className="grid grid-cols-1 gap-3 text-xs text-slate-400 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
                     <div className="mb-1 text-slate-500">Kickoff</div>
@@ -233,6 +240,7 @@ export default async function Home() {
         <MatchList
           matches={(todayMatches.length > 0 ? todayMatches : openingDayMatches).slice(0, 3)}
           groupByDate={false}
+          h2hMap={h2hMap}
         />
       </section>
 
@@ -247,7 +255,7 @@ export default async function Home() {
               View all
             </Link>
           </div>
-          <MatchList matches={upcoming} groupByDate={false} />
+          <MatchList matches={upcoming} groupByDate={false} h2hMap={h2hMap} />
         </section>
       )}
 
