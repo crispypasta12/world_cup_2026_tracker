@@ -1,65 +1,160 @@
-import Image from "next/image";
+import { getMatches, getStandings } from "@/lib/api/client";
+import MatchList from "@/components/matches/MatchList";
+import GroupTable from "@/components/groups/GroupTable";
+import { getQualifiedThirdPlace } from "@/lib/utils/standings";
+import Link from "next/link";
 
-export default function Home() {
+export const revalidate = 60;
+
+async function getHomeData() {
+  try {
+    const [allMatches, standingsData] = await Promise.all([
+      getMatches(),
+      getStandings(),
+    ]);
+
+    const now = new Date();
+
+    const liveMatches = allMatches.filter(
+      (m) => m.status === "IN_PLAY" || m.status === "PAUSED"
+    );
+
+    const upcoming = allMatches
+      .filter((m) => m.status === "SCHEDULED" || m.status === "TIMED")
+      .filter((m) => new Date(m.utcDate) >= now)
+      .sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
+      .slice(0, 6);
+
+    const recent = allMatches
+      .filter((m) => m.status === "FINISHED")
+      .sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime())
+      .slice(0, 6);
+
+    const groups = standingsData.standings.slice(0, 3);
+    const qualifiedThirds = getQualifiedThirdPlace(standingsData.standings);
+
+    return { liveMatches, upcoming, recent, groups, qualifiedThirds };
+  } catch {
+    return {
+      liveMatches: [],
+      upcoming: [],
+      recent: [],
+      groups: [],
+      qualifiedThirds: new Set<number>(),
+    };
+  }
+}
+
+export default async function Home() {
+  const { liveMatches, upcoming, recent, groups, qualifiedThirds } =
+    await getHomeData();
+
+  const hasData =
+    liveMatches.length > 0 ||
+    upcoming.length > 0 ||
+    recent.length > 0 ||
+    groups.length > 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-12">
+      {/* Hero */}
+      <section className="text-center py-10 space-y-4">
+        <div className="text-5xl">⚽</div>
+        <h1 className="text-4xl sm:text-5xl font-bold text-white">
+          FIFA World Cup 2026
+        </h1>
+        <p className="text-slate-400 text-lg max-w-xl mx-auto">
+          United States · Canada · Mexico &mdash; June 11 – July 19, 2026
+        </p>
+        <div className="flex items-center justify-center gap-4 pt-2 flex-wrap">
+          <Link
+            href="/groups"
+            className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm transition-colors"
+          >
+            View Groups
+          </Link>
+          <Link
+            href="/schedule"
+            className="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium text-sm transition-colors"
+          >
+            Full Schedule
+          </Link>
+          <Link
+            href="/bracket"
+            className="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium text-sm transition-colors"
+          >
+            Bracket
+          </Link>
+        </div>
+      </section>
+
+      {/* Live matches */}
+      {liveMatches.length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
+            Live Now
+          </h2>
+          <MatchList matches={liveMatches} groupByDate={false} />
+        </section>
+      )}
+
+      {/* Upcoming */}
+      {upcoming.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Upcoming Matches</h2>
+            <Link href="/schedule" className="text-sm text-blue-400 hover:text-blue-300">
+              View all →
+            </Link>
+          </div>
+          <MatchList matches={upcoming} groupByDate={false} />
+        </section>
+      )}
+
+      {/* Recent results */}
+      {recent.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Recent Results</h2>
+            <Link href="/schedule" className="text-sm text-blue-400 hover:text-blue-300">
+              View all →
+            </Link>
+          </div>
+          <MatchList matches={recent} groupByDate={false} />
+        </section>
+      )}
+
+      {/* Group standings preview */}
+      {groups.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Group Standings</h2>
+            <Link href="/groups" className="text-sm text-blue-400 hover:text-blue-300">
+              All groups →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groups.map((g) => (
+              <GroupTable key={g.group} group={g} qualifiedThirds={qualifiedThirds} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!hasData && (
+        <section className="text-center py-16 space-y-3">
+          <div className="text-4xl">🏆</div>
+          <p className="text-slate-400">
+            Match data will appear here once the tournament begins on June 11, 2026.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          <p className="text-slate-600 text-sm">
+            Make sure your{" "}
+            <code className="text-slate-500">FOOTBALL_DATA_API_KEY</code> is set
+            in <code className="text-slate-500">.env.local</code>.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
