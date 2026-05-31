@@ -8,6 +8,8 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { useRouter } from "next/navigation";
 import { useTimezone } from "@/lib/context/TimezoneContext";
 import CalendarMenu from "@/components/ui/CalendarMenu";
+import Icon from "@/components/ui/Icon";
+import { matchContextLabel, teamCode, teamName } from "@/lib/utils/match";
 
 // Maps football-data.org team names → names used in the international results CSV
 const NAME_MAP: Record<string, string> = {
@@ -54,24 +56,23 @@ function Score({ match, timezone }: { match: Match; timezone: string }) {
   );
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  LAST_32: "Round of 32",
-  LAST_16: "Round of 16",
-  QUARTER_FINALS: "Quarter-Final",
-  SEMI_FINALS: "Semi-Final",
-  THIRD_PLACE: "Third Place",
-  FINAL: "Final",
-};
-
 export default function MatchCard({ match }: MatchCardProps) {
   const { timezone } = useTimezone();
   const router = useRouter();
   const isScheduled = match.status === "SCHEDULED" || match.status === "TIMED";
+  const isLive = match.status === "IN_PLAY" || match.status === "PAUSED";
+  const isFinished = match.status === "FINISHED";
   const [h2h, setH2h] = useState<H2HRecord | null>(null);
-
-  const footerLabel = match.group
-    ? `${match.group.replace("GROUP_", "Group ")} · Matchday ${match.matchday}`
-    : (STAGE_LABELS[match.stage] ?? null);
+  const homeLabel = teamName(match.homeTeam);
+  const awayLabel = teamName(match.awayTeam);
+  const hasTbd = homeLabel === "TBD" || awayLabel === "TBD";
+  const stateClass = isLive
+    ? "border-green-400/35 bg-green-950/20 shadow-green-950/20"
+    : isFinished
+      ? "border-white/10 bg-slate-900/55"
+      : hasTbd
+        ? "border-dashed border-white/15 bg-slate-900/45"
+        : "border-white/10 bg-slate-900/55";
 
   // Only fetch H2H for upcoming matches with two known teams
   const homeId = match.homeTeam.id;
@@ -109,45 +110,75 @@ export default function MatchCard({ match }: MatchCardProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [homeId, awayId]);
 
+  function openMatch() {
+    router.push(`/matches/${match.id}`);
+  }
+
   return (
     <div
-      onClick={() => router.push(`/matches/${match.id}`)}
-      className="bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/60 border border-slate-700/50 hover:border-slate-600/70 rounded-xl p-4 transition-all cursor-pointer group"
+      onClick={openMatch}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openMatch();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      className={`group cursor-pointer rounded-2xl border p-4 shadow-xl backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-[var(--wc-gold)]/60 ${stateClass}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        {/* Home team */}
-        <div className="flex items-center gap-2 flex-1 justify-end">
-          <span className="text-sm font-medium text-white text-right leading-tight">
-            {match.homeTeam.shortName || match.homeTeam.tla}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-300">
+            {matchContextLabel(match)}
+          </span>
+          {match.venue && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-slate-400">
+              <Icon name="map-pin" className="h-3 w-3" />
+              {match.venue}
+            </span>
+          )}
+        </div>
+        <StatusBadge status={match.status} />
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="flex min-w-0 items-center justify-end gap-3">
+          <span className="truncate text-right text-base font-black leading-tight text-white">
+            {homeLabel}
           </span>
           <Flag
-            countryCode={match.homeTeam.area?.code ?? match.homeTeam.tla}
-            name={match.homeTeam.name}
-            size="md"
+            countryCode={teamCode(match.homeTeam)}
+            name={homeLabel}
+            size="lg"
           />
         </div>
 
-        {/* Score / Time */}
-        <div className="flex flex-col items-center gap-1 min-w-[90px]">
+        <div className="flex min-w-[94px] flex-col items-center gap-1 rounded-2xl border border-white/10 bg-slate-950/45 px-3 py-2">
           <Score match={match} timezone={timezone} />
-          <StatusBadge status={match.status} />
         </div>
 
-        {/* Away team */}
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex min-w-0 items-center gap-3">
           <Flag
-            countryCode={match.awayTeam.area?.code ?? match.awayTeam.tla}
-            name={match.awayTeam.name}
-            size="md"
+            countryCode={teamCode(match.awayTeam)}
+            name={awayLabel}
+            size="lg"
           />
-          <span className="text-sm font-medium text-white leading-tight">
-            {match.awayTeam.shortName || match.awayTeam.tla}
+          <span className="truncate text-base font-black leading-tight text-white">
+            {awayLabel}
           </span>
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between min-h-[20px]">
-        <span className="text-xs text-slate-500">{footerLabel}</span>
+      <div className="mt-4 flex min-h-[28px] items-center justify-between gap-3 border-t border-white/10 pt-3">
+        <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+          <Icon name={isFinished ? "trophy" : "clock"} className="h-3.5 w-3.5" />
+          {hasTbd
+            ? "Participants to be determined"
+            : isFinished
+              ? "Result confirmed"
+              : "Kickoff shown in selected timezone"}
+        </span>
         {isScheduled && <CalendarMenu match={match} />}
       </div>
 

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useTimezone } from "@/lib/context/TimezoneContext";
 import SearchPalette from "@/components/ui/SearchPalette";
+import BrandMark from "@/components/ui/BrandMark";
+import Icon from "@/components/ui/Icon";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -64,12 +66,11 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-white/10">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(7,17,31,0.82)] backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-14 gap-3">
+          <div className="flex items-center h-16 gap-4">
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <span className="text-xl">⚽</span>
-              <span className="font-bold text-white text-sm">WC 2026</span>
+              <BrandMark />
             </Link>
 
             {/* Nav */}
@@ -81,9 +82,9 @@ export default function Header() {
                   <Link
                     key={href}
                     href={href}
-                    className={`relative px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                    className={`relative px-3 py-2 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
                       active
-                        ? "bg-white/10 text-white"
+                        ? "bg-white/10 text-white shadow-inner shadow-white/5"
                         : "text-slate-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
@@ -103,7 +104,7 @@ export default function Header() {
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="text-xs bg-white/5 border border-white/10 text-slate-300 rounded-lg px-2 py-1.5 cursor-pointer hover:bg-white/10 transition-colors focus:outline-none hidden sm:block"
+                className="text-xs bg-white/5 border border-white/10 text-slate-300 rounded-xl px-2 py-2 cursor-pointer hover:bg-white/10 transition-colors focus:outline-none hidden sm:block"
                 title="Select timezone"
               >
                 {!TIMEZONES.some((tz) => tz.value === timezone) && (
@@ -120,22 +121,10 @@ export default function Header() {
 
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 hover:text-white transition-colors"
                 title="Search (⌘K)"
               >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                <Icon name="search" className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline text-xs">Search</span>
                 <kbd className="hidden lg:inline text-[10px] text-slate-600">⌘K</kbd>
               </button>

@@ -9,7 +9,7 @@ export const metadata = {
 
 export default async function TeamsPage() {
   let teams;
-  let groupMap: Record<number, string> = {};
+  const groupMap: Record<number, string> = {};
 
   try {
     const [teamsData, standingsData] = await Promise.all([

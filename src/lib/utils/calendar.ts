@@ -1,4 +1,5 @@
 import type { Match } from "@/lib/api/types";
+import { teamName } from "@/lib/utils/match";
 
 const STAGE_LABELS: Record<string, string> = {
   GROUP_STAGE: "Group Stage",
@@ -23,9 +24,7 @@ function escapeICS(str: string): string {
 }
 
 function matchSummary(match: Match): string {
-  const home = match.homeTeam.shortName || match.homeTeam.tla;
-  const away = match.awayTeam.shortName || match.awayTeam.tla;
-  return `${home} vs ${away}`;
+  return `${teamName(match.homeTeam)} vs ${teamName(match.awayTeam)}`;
 }
 
 function matchDescription(match: Match): string {

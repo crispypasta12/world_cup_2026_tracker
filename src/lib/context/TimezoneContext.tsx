@@ -1,33 +1,49 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 
 interface TimezoneContextValue {
   timezone: string;
   setTimezone: (tz: string) => void;
 }
 
+const KEY = "wc2026_timezone";
+const EVENT = "wc2026_timezone_changed";
+
 const TimezoneContext = createContext<TimezoneContextValue>({
   timezone: "UTC",
   setTimezone: () => {},
 });
 
-export function TimezoneProvider({ children }: { children: React.ReactNode }) {
-  const [timezone, setTimezoneState] = useState("UTC");
+function getBrowserTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem("wc2026_timezone");
-    if (stored) {
-      setTimezoneState(stored);
-    } else {
-      const browser = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      setTimezoneState(browser);
-    }
-  }, []);
+function getSnapshot() {
+  if (typeof window === "undefined") return "UTC";
+  return localStorage.getItem(KEY) ?? getBrowserTimezone();
+}
+
+function subscribe(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener(EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(EVENT, callback);
+  };
+}
+
+export function TimezoneProvider({ children }: { children: React.ReactNode }) {
+  const timezone = useSyncExternalStore(subscribe, getSnapshot, () => "UTC");
 
   function setTimezone(tz: string) {
-    setTimezoneState(tz);
-    localStorage.setItem("wc2026_timezone", tz);
+    localStorage.setItem(KEY, tz);
+    window.dispatchEvent(new Event(EVENT));
   }
 
   return (

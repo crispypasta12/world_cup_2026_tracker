@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Team, Match } from "@/lib/api/types";
 import Flag from "@/components/ui/Flag";
+import Icon from "@/components/ui/Icon";
+import { teamCode, teamName } from "@/lib/utils/match";
 
 interface SearchData {
   teams: Team[];
@@ -49,22 +51,27 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
     .filter(
       (t) =>
         q === "" ||
-        t.name.toLowerCase().includes(q) ||
+        t.name?.toLowerCase().includes(q) ||
         t.shortName?.toLowerCase().includes(q) ||
-        t.tla.toLowerCase().includes(q)
+        t.tla?.toLowerCase().includes(q)
     )
     .slice(0, q ? 6 : 0);
 
   const matchResults =
     q.length >= 2
       ? (data?.matches ?? [])
-          .filter(
-            (m) =>
-              m.homeTeam.name.toLowerCase().includes(q) ||
-              m.awayTeam.name.toLowerCase().includes(q) ||
-              m.homeTeam.tla.toLowerCase().includes(q) ||
-              m.awayTeam.tla.toLowerCase().includes(q)
-          )
+          .filter((m) => {
+            const home = teamName(m.homeTeam).toLowerCase();
+            const away = teamName(m.awayTeam).toLowerCase();
+            const homeTla = m.homeTeam.tla?.toLowerCase() ?? "";
+            const awayTla = m.awayTeam.tla?.toLowerCase() ?? "";
+            return (
+              home.includes(q) ||
+              away.includes(q) ||
+              homeTla.includes(q) ||
+              awayTla.includes(q)
+            );
+          })
           .slice(0, 6)
       : [];
 
@@ -82,7 +89,7 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setCursor((c) => Math.min(c + 1, results.length - 1));
+      setCursor((c) => Math.min(c + 1, Math.max(results.length - 1, 0)));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setCursor((c) => Math.max(c - 1, 0));
@@ -90,8 +97,6 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
       navigate(results[cursor]);
     }
   }
-
-  useEffect(() => setCursor(0), [query]);
 
   return (
     <div
@@ -104,23 +109,14 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
       >
         {/* Input */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/10">
-          <svg
-            className="w-4 h-4 text-slate-400 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <Icon name="search" className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setCursor(0);
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Search teams or matches…"
             className="flex-1 bg-transparent text-white placeholder-slate-500 outline-none text-sm"
@@ -160,26 +156,14 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
               >
                 <Flag
                   countryCode={team.area?.code ?? team.tla}
-                  name={team.name}
+                  name={team.name ?? "Team"}
                   size="sm"
                 />
                 <div>
-                  <div className="text-sm text-white font-medium">{team.name}</div>
-                  <div className="text-xs text-slate-500">{team.tla}</div>
+                  <div className="text-sm text-white font-medium">{team.name ?? "Team"}</div>
+                  <div className="text-xs text-slate-500">{team.tla ?? ""}</div>
                 </div>
-                <svg
-                  className="w-3.5 h-3.5 text-slate-600 ml-auto"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <Icon name="chevron-right" className="w-3.5 h-3.5 text-slate-600 ml-auto" />
               </button>
             ))}
 
@@ -200,20 +184,20 @@ export default function SearchPalette({ onClose }: SearchPaletteProps) {
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Flag
-                    countryCode={match.homeTeam.area?.code ?? match.homeTeam.tla}
-                    name={match.homeTeam.name}
+                    countryCode={teamCode(match.homeTeam)}
+                    name={teamName(match.homeTeam)}
                     size="sm"
                   />
                   <span className="text-sm text-white truncate">
-                    {match.homeTeam.shortName || match.homeTeam.tla}
+                    {teamName(match.homeTeam)}
                   </span>
                   <span className="text-slate-500 text-xs shrink-0">vs</span>
                   <span className="text-sm text-white truncate">
-                    {match.awayTeam.shortName || match.awayTeam.tla}
+                    {teamName(match.awayTeam)}
                   </span>
                   <Flag
-                    countryCode={match.awayTeam.area?.code ?? match.awayTeam.tla}
-                    name={match.awayTeam.name}
+                    countryCode={teamCode(match.awayTeam)}
+                    name={teamName(match.awayTeam)}
                     size="sm"
                   />
                 </div>

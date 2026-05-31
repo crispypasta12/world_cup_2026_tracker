@@ -1,6 +1,7 @@
-import { getStandings } from "@/lib/api/client";
+import { getMatches, getStandings } from "@/lib/api/client";
 import GroupTable from "@/components/groups/GroupTable";
 import { getQualifiedThirdPlace } from "@/lib/utils/standings";
+import type { Match, StandingsResponse } from "@/lib/api/types";
 
 export const revalidate = 120;
 
@@ -9,9 +10,10 @@ export const metadata = {
 };
 
 export default async function GroupsPage() {
-  let standings;
+  let standings: StandingsResponse;
+  let matches: Match[] = [];
   try {
-    standings = await getStandings();
+    [standings, matches] = await Promise.all([getStandings(), getMatches()]);
   } catch {
     return (
       <div className="text-center text-slate-500 py-16">
@@ -32,21 +34,29 @@ export default async function GroupsPage() {
         </p>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 text-xs text-slate-400">
-        <span className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-green-500 inline-block" />
-          Qualified
+      <div className="premium-panel flex flex-wrap items-center gap-4 rounded-2xl px-4 py-3 text-xs text-slate-400">
+        <span className="flex items-center gap-2 font-semibold">
+          <span className="h-3 w-3 rounded-sm bg-[var(--wc-green)]" />
+          Top 2
         </span>
-        <span className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-yellow-500 inline-block" />
+        <span className="flex items-center gap-2 font-semibold">
+          <span className="h-3 w-3 rounded-sm bg-[var(--wc-gold)]" />
           Best 3rd place
+        </span>
+        <span className="flex items-center gap-2 font-semibold">
+          <span className="h-3 w-3 rounded-sm bg-transparent ring-1 ring-white/15" />
+          Chasing
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {groups.map((g) => (
-          <GroupTable key={g.group ?? g.stage} group={g} qualifiedThirds={qualifiedThirds} />
+          <GroupTable
+            key={g.group ?? g.stage}
+            group={g}
+            qualifiedThirds={qualifiedThirds}
+            groupMatches={matches.filter((match) => match.group === g.group)}
+          />
         ))}
       </div>
     </div>

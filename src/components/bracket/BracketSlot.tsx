@@ -1,6 +1,7 @@
 import type { Match } from "@/lib/api/types";
 import Flag from "@/components/ui/Flag";
 import Link from "next/link";
+import { teamCode, teamName } from "@/lib/utils/match";
 
 interface BracketSlotProps {
   match?: Match;
@@ -12,7 +13,7 @@ function TeamRow({
   score,
   isWinner,
 }: {
-  team?: { name: string; shortName: string; tla: string; area?: { code?: string } } | null;
+  team?: Match["homeTeam"] | null;
   score: number | null;
   isWinner?: boolean;
 }) {
@@ -30,9 +31,9 @@ function TeamRow({
         isWinner ? "text-white" : "text-slate-400"
       }`}
     >
-      <Flag countryCode={team.area?.code ?? team.tla} name={team.name} size="sm" />
+      <Flag countryCode={teamCode(team)} name={teamName(team)} size="sm" />
       <span className="text-xs font-medium flex-1 truncate">
-        {team.shortName || team.tla}
+        {teamName(team)}
       </span>
       {score !== null && (
         <span
@@ -67,13 +68,13 @@ export default function BracketSlot({ match, placeholder }: BracketSlotProps) {
     <Link href={`/matches/${match.id}`}>
       <div className="bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/60 border border-slate-700/50 hover:border-slate-600/70 rounded-lg w-48 overflow-hidden transition-all cursor-pointer">
         <TeamRow
-          team={match.homeTeam as any}
+          team={match.homeTeam}
           score={finished ? match.score.fullTime.home : null}
           isWinner={homeWin}
         />
         <div className="border-t border-slate-700/50" />
         <TeamRow
-          team={match.awayTeam as any}
+          team={match.awayTeam}
           score={finished ? match.score.fullTime.away : null}
           isWinner={awayWin}
         />

@@ -7,7 +7,11 @@ export const metadata = {
   title: "Schedule | WC 2026",
 };
 
-export default async function SchedulePage() {
+interface Props {
+  searchParams?: Promise<{ venue?: string }>;
+}
+
+export default async function SchedulePage({ searchParams }: Props) {
   let matches;
   try {
     matches = await getMatches();
@@ -27,7 +31,7 @@ export default async function SchedulePage() {
           All {matches.length} matches — filter by stage or status.
         </p>
       </div>
-      <ScheduleClient matches={matches} />
+      <ScheduleClient matches={matches} initialVenue={(await searchParams)?.venue ?? "ALL"} />
     </div>
   );
 }

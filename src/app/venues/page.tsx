@@ -1,4 +1,8 @@
 import { getMatches } from "@/lib/api/client";
+import Link from "next/link";
+import Icon from "@/components/ui/Icon";
+import { formatMatchDate } from "@/lib/utils/date";
+import { matchTitle, STAGE_LABELS } from "@/lib/utils/match";
 
 export const revalidate = 3600;
 
@@ -11,25 +15,26 @@ interface VenueInfo {
   country: "USA" | "Canada" | "Mexico";
   countryFlag: string;
   capacity: number;
+  timezone: string;
 }
 
 const VENUE_DATA: Record<string, VenueInfo> = {
-  "SoFi Stadium": { city: "Los Angeles", country: "USA", countryFlag: "us", capacity: 70240 },
-  "Rose Bowl Stadium": { city: "Pasadena (LA)", country: "USA", countryFlag: "us", capacity: 92542 },
-  "Levi's Stadium": { city: "San Francisco Bay Area", country: "USA", countryFlag: "us", capacity: 68500 },
-  "AT&T Stadium": { city: "Dallas", country: "USA", countryFlag: "us", capacity: 80000 },
-  "NRG Stadium": { city: "Houston", country: "USA", countryFlag: "us", capacity: 72220 },
-  "Hard Rock Stadium": { city: "Miami", country: "USA", countryFlag: "us", capacity: 64767 },
-  "MetLife Stadium": { city: "New York / New Jersey", country: "USA", countryFlag: "us", capacity: 82500 },
-  "Lincoln Financial Field": { city: "Philadelphia", country: "USA", countryFlag: "us", capacity: 69328 },
-  "Gillette Stadium": { city: "Boston", country: "USA", countryFlag: "us", capacity: 65878 },
-  "Lumen Field": { city: "Seattle", country: "USA", countryFlag: "us", capacity: 68740 },
-  "Arrowhead Stadium": { city: "Kansas City", country: "USA", countryFlag: "us", capacity: 76416 },
-  "BC Place": { city: "Vancouver", country: "Canada", countryFlag: "ca", capacity: 54500 },
-  "BMO Field": { city: "Toronto", country: "Canada", countryFlag: "ca", capacity: 45736 },
-  "Estadio Azteca": { city: "Mexico City", country: "Mexico", countryFlag: "mx", capacity: 87523 },
-  "Estadio Akron": { city: "Guadalajara", country: "Mexico", countryFlag: "mx", capacity: 49850 },
-  "Estadio BBVA": { city: "Monterrey", country: "Mexico", countryFlag: "mx", capacity: 53500 },
+  "SoFi Stadium": { city: "Los Angeles", country: "USA", countryFlag: "us", capacity: 70240, timezone: "PT" },
+  "Rose Bowl Stadium": { city: "Pasadena (LA)", country: "USA", countryFlag: "us", capacity: 92542, timezone: "PT" },
+  "Levi's Stadium": { city: "San Francisco Bay Area", country: "USA", countryFlag: "us", capacity: 68500, timezone: "PT" },
+  "AT&T Stadium": { city: "Dallas", country: "USA", countryFlag: "us", capacity: 80000, timezone: "CT" },
+  "NRG Stadium": { city: "Houston", country: "USA", countryFlag: "us", capacity: 72220, timezone: "CT" },
+  "Hard Rock Stadium": { city: "Miami", country: "USA", countryFlag: "us", capacity: 64767, timezone: "ET" },
+  "MetLife Stadium": { city: "New York / New Jersey", country: "USA", countryFlag: "us", capacity: 82500, timezone: "ET" },
+  "Lincoln Financial Field": { city: "Philadelphia", country: "USA", countryFlag: "us", capacity: 69328, timezone: "ET" },
+  "Gillette Stadium": { city: "Boston", country: "USA", countryFlag: "us", capacity: 65878, timezone: "ET" },
+  "Lumen Field": { city: "Seattle", country: "USA", countryFlag: "us", capacity: 68740, timezone: "PT" },
+  "Arrowhead Stadium": { city: "Kansas City", country: "USA", countryFlag: "us", capacity: 76416, timezone: "CT" },
+  "BC Place": { city: "Vancouver", country: "Canada", countryFlag: "ca", capacity: 54500, timezone: "PT" },
+  "BMO Field": { city: "Toronto", country: "Canada", countryFlag: "ca", capacity: 45736, timezone: "ET" },
+  "Estadio Azteca": { city: "Mexico City", country: "Mexico", countryFlag: "mx", capacity: 87523, timezone: "CST" },
+  "Estadio Akron": { city: "Guadalajara", country: "Mexico", countryFlag: "mx", capacity: 49850, timezone: "CST" },
+  "Estadio BBVA": { city: "Monterrey", country: "Mexico", countryFlag: "mx", capacity: 53500, timezone: "CST" },
 };
 
 function findVenueData(apiName: string): [string, VenueInfo] | null {
@@ -52,6 +57,7 @@ const COUNTRY_COLORS: Record<string, string> = {
 export default async function VenuesPage() {
   // Build match counts by venue from API
   const matchCounts: Record<string, number> = {};
+  const featuredMatches: Record<string, { title: string; date: string; stage: string } | undefined> = {};
   try {
     const matches = await getMatches();
     for (const m of matches) {
@@ -59,6 +65,17 @@ export default async function VenuesPage() {
         const match = findVenueData(m.venue);
         const key = match ? match[0] : m.venue;
         matchCounts[key] = (matchCounts[key] ?? 0) + 1;
+        const current = featuredMatches[key];
+        const rank = ["FINAL", "THIRD_PLACE", "SEMI_FINALS", "QUARTER_FINALS", "LAST_16", "LAST_32", "GROUP_STAGE"];
+        const currentRank = current ? rank.indexOf(current.stage) : Number.POSITIVE_INFINITY;
+        const nextRank = rank.indexOf(m.stage);
+        if (!current || (nextRank !== -1 && nextRank < currentRank)) {
+          featuredMatches[key] = {
+            title: matchTitle(m),
+            date: formatMatchDate(m.utcDate),
+            stage: m.stage,
+          };
+        }
       }
     }
   } catch {
@@ -73,11 +90,15 @@ export default async function VenuesPage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold text-white">Venues</h1>
-        <p className="text-slate-400 mt-1 text-sm">
-          16 stadiums across 3 host nations — United States, Canada, and Mexico.
-        </p>
+      <div className="premium-panel overflow-hidden rounded-[2rem]">
+        <div className="venue-visual" />
+        <div className="p-6 sm:p-8">
+          <div className="section-kicker">Host Cities</div>
+          <h1 className="mt-2 text-4xl font-black text-white">Venues</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+            16 stadiums across 3 host nations, from opening night in Mexico City to the final in New York / New Jersey.
+          </p>
+        </div>
       </div>
 
       {(["USA", "Canada", "Mexico"] as const).map((country) => (
@@ -100,48 +121,69 @@ export default async function VenuesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {grouped[country].map(([name, info]) => {
               const count = matchCounts[name];
+              const featured = featuredMatches[name];
               return (
                 <div
                   key={name}
-                  className={`bg-gradient-to-br ${COUNTRY_COLORS[country]} bg-slate-800/60 backdrop-blur-sm border rounded-xl p-5 space-y-3 hover:scale-[1.01] transition-transform`}
+                  className={`overflow-hidden rounded-2xl border bg-slate-800/60 backdrop-blur-sm transition-transform hover:-translate-y-1 ${COUNTRY_COLORS[country]}`}
                 >
-                  <div>
-                    <h3 className="font-bold text-white text-base leading-tight">{name}</h3>
-                    <p className="text-slate-400 text-sm mt-0.5">{info.city}</p>
+                  <div className="venue-visual min-h-[96px]">
+                    <div className="absolute left-4 top-4 rounded-full border border-white/15 bg-slate-950/45 px-3 py-1 text-xs font-black text-white backdrop-blur">
+                      {info.timezone}
+                    </div>
                   </div>
 
-                  <div className="flex items-end justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        <svg
-                          className="w-3.5 h-3.5 text-slate-500"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        <span className="text-xs text-slate-400">
-                          {info.capacity.toLocaleString()} capacity
-                        </span>
+                  <div className="space-y-4 p-5">
+                    <div>
+                      <h3 className="font-black text-white text-lg leading-tight">{name}</h3>
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-400">
+                        <Icon name="map-pin" className="h-3.5 w-3.5" />
+                        {info.city}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                        <Icon name="users" className="mb-2 h-4 w-4 text-slate-500" />
+                        <div className="text-sm font-black text-white">
+                          {info.capacity.toLocaleString()}
+                        </div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          capacity
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                        <Icon name="calendar" className="mb-2 h-4 w-4 text-slate-500" />
+                        <div className="text-sm font-black text-white">
+                          {count ?? 0}
+                        </div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          matches
+                        </div>
                       </div>
                     </div>
 
-                    {count !== undefined && count > 0 && (
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-white tabular-nums">
-                          {count}
+                    {featured && (
+                      <div className="rounded-xl border border-white/10 bg-slate-950/30 p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--wc-gold)]">
+                          Biggest listed match
                         </div>
-                        <div className="text-xs text-slate-500">
-                          match{count !== 1 ? "es" : ""}
+                        <div className="mt-1 truncate text-sm font-bold text-white">
+                          {featured.title}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {STAGE_LABELS[featured.stage] ?? featured.stage} / {featured.date}
                         </div>
                       </div>
                     )}
+
+                    <Link
+                      href={`/schedule?venue=${encodeURIComponent(name)}`}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.055] px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    >
+                      View matches at this venue
+                      <Icon name="arrow-right" className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
               );
