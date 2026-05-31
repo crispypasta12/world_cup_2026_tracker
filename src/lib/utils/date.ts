@@ -10,9 +10,9 @@ export function formatMatchDate(utcDate: string, timezone = "UTC"): string {
 export function formatMatchTime(utcDate: string, timezone = "UTC"): string {
   const date = new Date(utcDate);
   const timeStr = date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
     timeZone: timezone,
   });
   if (timezone === "UTC") return timeStr + " UTC";
@@ -35,9 +35,9 @@ export function formatMatchDateTime(utcDate: string, timezone = "UTC"): string {
     weekday: "short",
     month: "short",
     day: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
     timeZone: timezone,
   });
   if (timezone === "UTC") return base + " UTC";
