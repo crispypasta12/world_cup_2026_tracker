@@ -12,7 +12,7 @@ export default function TeamCard({ team, groupLabel }: TeamCardProps) {
     <Link href={`/teams/${team.id}`}>
       <div className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-xl p-4 flex flex-col items-center gap-3 transition-colors text-center cursor-pointer">
         <Flag
-          countryCode={team.area?.code?.toLowerCase() ?? "xx"}
+          src={team.area?.flag}
           name={team.name}
           size="lg"
         />

@@ -13,7 +13,7 @@ function TeamRow({
   score,
   isWinner,
 }: {
-  team?: { name: string; shortName: string; tla: string; area: { code: string } } | null;
+  team?: { name: string; shortName: string; tla: string; area: { code: string; flag?: string } } | null;
   score: number | null;
   isWinner?: boolean;
 }) {
@@ -32,7 +32,7 @@ function TeamRow({
       }`}
     >
       <Flag
-        countryCode={team.area?.code?.toLowerCase() ?? "xx"}
+        src={team.area?.flag}
         name={team.name}
         size="sm"
       />

@@ -29,9 +29,6 @@ export default async function MatchPage({ params }: Props) {
   const isFinished = status === "FINISHED";
   const showScore = isLive || isFinished;
 
-  const homeCode = homeTeam.area?.code?.toLowerCase() ?? "xx";
-  const awayCode = awayTeam.area?.code?.toLowerCase() ?? "xx";
-
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       {/* Back link */}
@@ -62,7 +59,7 @@ export default async function MatchPage({ params }: Props) {
             href={`/teams/${homeTeam.id}`}
             className="flex flex-col items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
           >
-            <Flag countryCode={homeCode} name={homeTeam.name} size="lg" />
+            <Flag src={homeTeam.area?.flag} name={homeTeam.name} size="lg" />
             <span className="text-white font-semibold text-center">
               {homeTeam.shortName || homeTeam.name}
             </span>
@@ -89,7 +86,7 @@ export default async function MatchPage({ params }: Props) {
             href={`/teams/${awayTeam.id}`}
             className="flex flex-col items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
           >
-            <Flag countryCode={awayCode} name={awayTeam.name} size="lg" />
+            <Flag src={awayTeam.area?.flag} name={awayTeam.name} size="lg" />
             <span className="text-white font-semibold text-center">
               {awayTeam.shortName || awayTeam.name}
             </span>
