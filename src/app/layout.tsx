@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Providers from "@/lib/context/Providers";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "World Cup 2026 Tracker",
@@ -33,6 +34,7 @@ export default function RootLayout({
             </a>
           </footer>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
